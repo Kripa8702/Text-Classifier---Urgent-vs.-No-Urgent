@@ -63,20 +63,12 @@ if st.button("Submit"):
         # Display table 
         df = pd.DataFrame({
             'Model': [
-                'SVM', 
-                'Best SVM', 
-                'Logistic Regression',
-                'Best Logistic Regression',
                 'Stacked Model-1',
                 'Stacked Model-2',
                 'Stacked Model-3',
                 'Stacked Model-4'
                 ],
             'Prediction': [
-                result, 
-                result_best,
-                result_logreg, 
-                result_logreg_best,
                 prediction_stacked_1,
                 prediction_stacked_2,
                 prediction_stacked_3,
