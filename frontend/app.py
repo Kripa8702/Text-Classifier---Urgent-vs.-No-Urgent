@@ -48,17 +48,22 @@ if st.button("Submit"):
 
         # Stacked model
         prediction_stacked_1 = "Urgent" if stacked_model_1.predict(input_df)[0] == 1 else "Non-Urgent"
+        index_stack_1 = 1 if stacked_model_1.predict(input_df)[0] == 1 else 0
+
         prediction_stacked_2 = "Urgent" if stacked_model_2.predict(input_df)[0] == 1 else "Non-Urgent"
+        index_stack_2 = 1 if stacked_model_2.predict(input_df)[0] == 1 else 0
+
         prediction_stacked_3 = "Urgent" if stacked_model_3.predict(input_df)[0] == 1 else "Non-Urgent"
+        index_stack_3 = 1 if stacked_model_3.predict(input_df)[0] == 1 else 0
+
         prediction_stacked_4 = "Urgent" if stacked_model_4.predict(input_df)[0] == 1 else "Non-Urgent"
-    
-        
-        # Display the result
-        result = "Urgent" if prediction_svm == 1 else "Non-Urgent"
-        result_best = "Urgent" if prediction__svm_best == 1 else "Non-Urgent"
-        result_logreg = "Urgent" if prediction_logreg == 1 else "Non-Urgent"
-        result_logreg_best = "Urgent" if prediction_logreg_best == 1 else "Non-Urgent"
-        
+        index_stack_4 = 1 if stacked_model_4.predict(input_df)[0] == 1 else 0
+
+        # Confidence scores
+        confidence_stack_1 = stacked_model_1.predict_proba(input_df)[0][index_stack_1]
+        confidence_stack_2 = stacked_model_2.predict_proba(input_df)[0][index_stack_2]
+        confidence_stack_3 = stacked_model_3.predict_proba(input_df)[0][index_stack_3]
+        confidence_stack_4 = stacked_model_4.predict_proba(input_df)[0][index_stack_4]
         
         # Display table 
         df = pd.DataFrame({
@@ -73,6 +78,12 @@ if st.button("Submit"):
                 prediction_stacked_2,
                 prediction_stacked_3,
                 prediction_stacked_4
+            ],
+            'Confidence': [
+                confidence_stack_1,
+                confidence_stack_2,
+                confidence_stack_3,
+                confidence_stack_4
             ]
         })
         
