@@ -1,0 +1,5 @@
+Text,SVM,LogReg,SVM + LogReg,Naive Bayes
+"The client presentation is scheduled for 3 PM, but the slides haven’t been finalized yet. Can you review them ASAP?",Non-Urgent,Urgent,Urgent,Urgent
+Can we turn the office plants into a collaborative project? Everyone gets a leaf to water!,Urgent,Urgent,Urgent,Non-Urgent
+Reminder: the company mascot is now a sock puppet named Carl. Weekly meeting attendance is mandatory for him.,Non-Urgent,Urgent,Urgent,Urgent
+I accidentally set my Slack status to 'Out of Cheese Error' for the week. Should I change it?,Non-Urgent,Urgent,Urgent,Non-Urgent
