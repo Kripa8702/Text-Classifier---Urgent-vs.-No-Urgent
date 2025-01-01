@@ -1,20 +1,33 @@
 import streamlit as st
 import pandas as pd
 import pickle
+from sklearn.ensemble import StackingClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 FEEDBACK_FILE = "../csv/feedback.csv"
-ORIGINAL_DATA_FILE = "../csv/oversampled_data.csv"
+ORIGINAL_DATA_FILE = "../csv/final_data.csv"
 
 predicted_output = None
 
 # Load the pipelines
+
+with open("../models/svm_pipeline.pkl", "rb") as file:
+    svm_pipeline = pickle.load(file)
+
+with open("../models/best_logreg_pipeline.pkl", "rb") as file:
+    logreg_tuned_pipeline = pickle.load(file)
+
 with open("../models/stacked_model_3.pkl", "rb") as file:
     stacked_model_3 = pickle.load(file)
 
 try: 
     with open("../models/feedback_trained_model.pkl", "rb") as file:
         feedback_trained_model = pickle.load(file)
+
 except FileNotFoundError:
     feedback_trained_model = None
     
@@ -45,27 +58,65 @@ def save_feedback(feedback):
 def load_feedback():
     original_data = pd.read_csv(ORIGINAL_DATA_FILE)
     try: 
-        feedback_data = pd.read_csv(FEEDBACK_FILE)
-        st.table(feedback_data)
-        
+        feedback_data = pd.read_csv(FEEDBACK_FILE)        
         combined_data = pd.concat([original_data, feedback_data], ignore_index=True)
     except FileNotFoundError:
         combined_data = original_data
     return combined_data
+
+def retrain_pipeline(model, tdidf_vectorizer, X, y):
+    text_transformer = Pipeline([
+    ('tfidf', tdidf_vectorizer)
+    ])
+
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ('text_tfidf', text_transformer, 'text')
+        ],
+    )
+    new_pipeline =Pipeline([
+        ('preprocessor', preprocessor),
+        ('classifier', model)
+    ])
+
+    new_pipeline.fit(X, y)
+    return new_pipeline
+
+def retrain_stacked_model(pipeline_svm, pipeline_log, X, y):
+    stacked_model = StackingClassifier(
+        estimators=[
+            ('svm', pipeline_svm),
+            ('logreg_tuned', pipeline_log)
+        ],
+        final_estimator=LogisticRegression(random_state=42, max_iter=1000),
+    )
+    
+    stacked_model.fit(X, y)
+    return stacked_model
 
 def retrain_model():
     data = load_feedback()
     X = data[["text"]]
     y = data["label"]
     
-    # Retrain the model
-    st.write("Retraining the model...")
-    stacked_model_3.fit(X, y)
+    updated_svm_pipeline = retrain_pipeline(
+        SVC(random_state=42, kernel='linear', probability=True),
+        TfidfVectorizer(),
+        X,
+        y
+    )
+
+    updated_logreg_pipeline = retrain_pipeline(
+        LogisticRegression(random_state=42, max_iter=1000), 
+        TfidfVectorizer(ngram_range=(1, 4)),
+        X,
+        y
+    )
+
+    updated_stacked_model_3 = retrain_stacked_model(updated_svm_pipeline, updated_logreg_pipeline, X, y)
     
-    # Save the model
     with open("../models/feedback_trained_model.pkl", "wb") as file:
-        pickle.dump(stacked_model_3, file)
-        
+        pickle.dump(updated_stacked_model_3, file)
     
 
 # STREAMLIT APP
@@ -74,7 +125,7 @@ st.title("Text Classification: Urgent vs Non-Urgent")
 # Text input for user
 user_input = st.text_area("Enter your message:", placeholder="Type your message here...")
 
-if st.button("Submit"):
+if st.button("Submit", key="submit"):
     if user_input.strip():
          # Convert the input into a DataFrame
         input_df = pd.DataFrame({'text': [user_input]})
@@ -122,14 +173,16 @@ if st.button("Submit"):
             })
         
         st.table(df)
+
+        
                     
     else:
         st.error("Please enter a valid message before submitting.")
         
+
 # Feedback
 if predicted_output:
     st.write(f"The model predicted the message as **{predicted_output}**.")
-feedback = st.radio("Is the prediction correct?", ["Yes", "No"],)
+feedback = st.radio("Is the prediction correct?", ["Yes", "No"], key="feedback")
 save_feedback(feedback)
-
 
