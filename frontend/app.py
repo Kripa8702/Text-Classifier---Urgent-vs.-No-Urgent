@@ -1,12 +1,6 @@
 import streamlit as st
 import pandas as pd
 import pickle
-from sklearn.ensemble import StackingClassifier
-from sklearn.pipeline import Pipeline
-from sklearn.compose import ColumnTransformer
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
-from sklearn.feature_extraction.text import TfidfVectorizer
 
 FEEDBACK_FILE = "../csv/feedback.csv"
 ORIGINAL_DATA_FILE = "../csv/final_data.csv"
